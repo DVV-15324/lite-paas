@@ -28,11 +28,11 @@ func (p *SupportTicket) Mask() {
 	uid_inv := uid.NewUID(uint32(p.UserID), 1).ToBase58()
 	p.FakeUserID = uid_inv
 	if p.ServiceType == "runtime" {
-		uid_svc := uid.NewUID(uint32(p.ServiceSubID), 7).ToBase58()
+		uid_svc := uid.NewUID(uint32(p.ServiceSubID), 6).ToBase58()
 		p.FakeServiceSubID = uid_svc
 	}
 	if p.ServiceType == "storage" || p.ServiceType == "database" {
-		uid_svc := uid.NewUID(uint32(p.ServiceSubID), 6).ToBase58()
+		uid_svc := uid.NewUID(uint32(p.ServiceSubID), 7).ToBase58()
 		p.FakeServiceSubID = uid_svc
 	}
 

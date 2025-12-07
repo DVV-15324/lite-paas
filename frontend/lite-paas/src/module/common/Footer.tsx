@@ -7,7 +7,7 @@ const FooterMain = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                     {/* Company Info */}
                     <div>
-                        <h3 className="text-2xl font-bold text-cyan-400 mb-6">BNCloud</h3>
+                        <h3 className="text-2xl font-bold text-cyan-400 mb-6">LitePaas</h3>
                         <p className="text-gray-300 mb-4 leading-relaxed">
                             Cung cấp dịch vụ đám mây và giải pháp triển khai ứng dụng nhanh chóng,
                             an toàn và linh hoạt.
@@ -23,7 +23,7 @@ const FooterMain = () => {
                         <p className="text-gray-300 mb-4">
                             Đội ngũ hỗ trợ kỹ thuật của chúng tôi luôn sẵn sàng hỗ trợ bạn 24/24h.
                         </p>
-                        <p className="text-gray-300 mb-2">Email: support@bncloud.vn</p>
+                        <p className="text-gray-300 mb-2">Email: support@litepaas.vn</p>
                         <p className="text-gray-300">Hotline: 1900 1234</p>
                     </div>
 
@@ -50,7 +50,7 @@ const FooterMain = () => {
                 {/* Copyright */}
                 <div className="border-t border-gray-700 pt-8 text-center">
                     <p className="text-gray-400">
-                        &copy; 2025 BNCloud. Tất cả các quyền được bảo lưu.
+                        &copy; 2025 LitePaas. Tất cả các quyền được bảo lưu.
                     </p>
                 </div>
             </div>

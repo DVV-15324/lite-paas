@@ -20,7 +20,7 @@ func CheckPasword(password string) error {
 	if len(password) < 1 {
 		return ErrorPasswordIsNotEmpty
 	}
-	if len(password) < 2 || len(password) > 20 {
+	if len(password) < 1 || len(password) > 20 {
 		return ErrorPasswordNotValid
 	}
 	return nil

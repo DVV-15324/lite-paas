@@ -36,3 +36,11 @@ export type ProfileType = {
 }
 
 
+export type ForgotPasswordType = {
+    email: string;
+};
+
+
+export type ChangePasswordType = {
+    new_password: string;
+};

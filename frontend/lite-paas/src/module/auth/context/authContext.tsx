@@ -1,10 +1,10 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
-import { LoginType, ProfileType, RegisterType, ResponseLoginType } from "../model/auth"
+import { ForgotPasswordType, LoginType, ProfileType, RegisterType, ResponseLoginType } from "../model/auth"
 import { useNavigate, ErrorResponse } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import axios, { AxiosError } from "axios";
 import CircularProgress from '@mui/material/CircularProgress';
-import { ApiLogin, ApiLoginGoogle, ApiProfile, ApiRegister } from "../services/api";
+import { ApiForgetPassword, ApiLogin, ApiLoginGoogle, ApiProfile, ApiRegister } from "../services/api";
 import { Response } from "../../common/model";
 import { TokenResponse } from "@react-oauth/google";
 
@@ -26,6 +26,7 @@ type AuthContextType = {
     loading: boolean
     handleLogin: (data: LoginType) => Promise<void>
     handleRegister: (data: RegisterType) => Promise<void>
+    handleForgotPassword: (data: ForgotPasswordType) => Promise<void>
     handleProfile: () => Promise<void>
     handleCredentialResponse: (response: any) => Promise<void>;
     handleOut: () => void
@@ -36,6 +37,7 @@ export const AuthContext = createContext<AuthContextType>({
     loading: true,
     handleLogin: async () => { },
     handleRegister: async () => { },
+    handleForgotPassword: async () => { },
     handleProfile: async () => { },
     handleCredentialResponse: async () => { },
     handleOut: () => { },
@@ -96,7 +98,7 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
 
             await handleProfile();
 
-            navigate("/");
+            navigate("/dashboard");
         } catch (error) {
             const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
             enqueueSnackbar(err.message, { variant: "error" });
@@ -114,7 +116,15 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
             enqueueSnackbar(err.message, { variant: "error" });
         }
     }
-
+    const handleForgotPassword = async (data: ForgotPasswordType) => {
+        try {
+            await ApiForgetPassword<Response<boolean>>(data)
+            navigate("/")
+        } catch (error) {
+            const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
+            enqueueSnackbar(err.message, { variant: "error" });
+        }
+    }
     const handleOut = async () => {
         setProfile(null)
 
@@ -131,7 +141,7 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
             enqueueSnackbar("Đăng nhập bằng Google thành công!", { variant: "success" });
 
             await handleProfile();
-            navigate("/");
+            navigate("/handleProfile");
         } catch (err) {
             const error = ErrorHandle(err as AxiosError);
             console.log("Error message to snackbar:", error.message);
@@ -151,6 +161,7 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
                 handleProfile,
                 handleCredentialResponse,
                 handleOut,
+                handleForgotPassword,
             }}
         >
             {children}

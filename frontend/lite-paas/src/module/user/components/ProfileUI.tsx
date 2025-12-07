@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-
-import { Pencil, Save } from "lucide-react";
+import { Pencil, Save, Key } from "lucide-react";
 import { UpdateProfileType } from "../model/user";
 import { enqueueSnackbar } from "notistack";
 import { ApiUpdateUser } from "../services/api";
 import { AxiosError } from "axios";
 import Papa from "papaparse";
 import Select from "react-select";
-
 import { useHookAuth } from "../../auth/hooks/authHooks";
+
+import { useNavigate } from "react-router-dom";
 
 type Field = "name" | "email" | "phone" | "address";
 const fields: Field[] = ["name", "email", "phone", "address"];
@@ -21,10 +21,17 @@ type AddressRow = {
 
 export const ProfileUI = () => {
     const { profile } = useHookAuth();
-
+    const navigate = useNavigate();
     // Editable chỉ phone và address
     const isEditableField = (field: Field) => field === "address" || field === "phone";
-
+    const initials = profile?.name
+        ? profile.name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase()
+        : "";
 
     const [editing, setEditing] = useState<Field | null>(null);
     const [values, setValues] = useState<Record<Field, string>>({
@@ -33,6 +40,9 @@ export const ProfileUI = () => {
         phone: profile?.phone.String || "",
         address: profile?.address.String || "",
     });
+
+    // State cho modal đổi mật khẩu
+
 
     // Dữ liệu CSV địa chỉ
     const [rawData, setRawData] = useState<AddressRow[]>([]);
@@ -136,10 +146,7 @@ export const ProfileUI = () => {
         }
     };
 
-
     if (!profile) return <div className="text-gray-500">Đang tải thông tin người dùng...</div>;
-
-
 
     const RenderField = ({ field }: { field: Field }) => {
         const editable = isEditableField(field);
@@ -224,20 +231,35 @@ export const ProfileUI = () => {
             </div>
         );
     };
-    return (
-        <div className="w-full xl:w-5xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-6">
-            <div className="text-xl font-semibold text-gray-800 text-center">Thông tin người dùng</div>
 
-            <div className="flex items-center gap-4 justify-center relative w-20 h-20 mx-auto">
-                <img
-                    src={"/avatar.png"}
-                    alt="avatar"
-                    className="w-20 h-20 rounded-full object-cover ring-2 ring-blue-500 cursor-pointer"
-                />
-            </div>
-            {fields.map((field) => (
-                <RenderField key={field} field={field} />
-            ))}
-        </div>
+    return (
+        <>
+            <div className="w-full xl:w-5xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-6">
+                <div className="text-xl font-semibold text-gray-800 text-center">Thông tin người dùng</div>
+
+                <div className="flex items-center gap-4 justify-center relative w-20 h-20 mx-auto">
+                    <div className="w-20 h-20 rounded-full bg-blue-500 text-white flex items-center justify-center text-3xl font-bold">
+                        {initials}
+                    </div>
+                </div>
+
+                {fields.map((field) => (
+                    <RenderField key={field} field={field} />
+                ))}
+
+                {/* Nút đổi mật khẩu */}
+                <div className="pt-4 border-t">
+                    <button
+                        onClick={() => navigate("/change-password")}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                        <Key size={18} />
+                        Đổi mật khẩu
+                    </button>
+                </div>
+            </div >
+
+
+        </>
     );
 };

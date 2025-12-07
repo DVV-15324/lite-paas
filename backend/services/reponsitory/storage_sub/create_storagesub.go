@@ -17,7 +17,7 @@ func (s *StorageSubServiceSQL) CreateStorageSub(
 
 	// 1. Insert tạm thời port_one và port_two = 0
 	query := `
-        INSERT INTO user_storage_sub (user_id, service_id, port_one, port_two, name_login, password_login, link_return, status)
+        INSERT INTO user_storage (user_id, service_id, port_one, port_two, name_login, password_login, link_return, status)
         OUTPUT INSERTED.id
         VALUES (@user_id, @service_id, @port_one, @port_two, @name_login, @password_login, @link_return, @status)
     `
@@ -47,7 +47,7 @@ func (s *StorageSubServiceSQL) CreateStorageSub(
 	}
 
 	_, err = s.db.ExecContext(ctx, `
-		UPDATE user_storage_sub
+		UPDATE user_storage
 		SET port_one = @port_one, port_two = @port_two
 		WHERE id = @id
 	`,

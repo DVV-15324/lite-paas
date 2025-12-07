@@ -7,7 +7,7 @@ import (
 )
 
 func (s *StorageSubServiceSQL) GetStorageSubsById(ctx context.Context, id int64) (*entityStorageSub.StorageSubscription, error) {
-	query := `SELECT id, user_id, service_id, name_login, password_login, port_one, port_two, link_return, status, created_at, updated_at FROM user_storage_sub WHERE id=@id`
+	query := `SELECT id, user_id, service_id, name_login, password_login, port_one, port_two, link_return, status, created_at, updated_at FROM user_storage WHERE id=@id`
 	rows := s.db.QueryRowContext(ctx, query, sql.Named("id", id))
 
 	var sub entityStorageSub.StorageSubscription

@@ -2,9 +2,6 @@ package cmd
 
 import (
 	"lite-paas/composer"
-
-	//"lite-paas/k8s-service/github/services/webhook"
-	//"lite-paas/k8s-service/github/services/webhook"
 	"lite-paas/middleware"
 	"log"
 
@@ -15,14 +12,13 @@ import (
 )
 
 var root = &cobra.Command{
-	Use:   "app",
+	Use:   "start",
 	Short: "Bắt đầu khởi động phần mềm",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatal("Error loading .env file")
+			log.Fatal("loi loading .env file")
 		}
-
 		g := gin.Default()
 		g.Use(middleware.Cors())
 		StartService(g)
@@ -47,8 +43,14 @@ func StartService(r *gin.Engine) {
 	auth.POST("/login", comp.ApiAuth.ApiLoginAuth())
 	auth.POST("/google", comp.ApiAuth.ApiGoogleLogin())
 	auth.POST("/register", comp.ApiAuth.ApiRegisterAuth())
-	auth.POST("/forget-password", comp.ApiAuth.ApiAuthForget())
+	auth.POST("/forgot_password", comp.ApiAuth.ApiAuthForget())
+	v3 := r.Group("v3")
+	v3.Use(middleware.Cors())
+	authV3 := v3.Group("auth")
+	authV3.Use(middleware.RequiredAuthQuery(comp.BzIntrospect))
+	authV3.POST("/reset_password", comp.ApiAuth.ApiAuthChange())
 
+	auth.POST("/reset_password", comp.ApiAuth.ApiAuthChange()).Use(middleware.RequiredAuthQuery(comp.BzIntrospect))
 	userV1 := v1.Group("user")
 	userV1.POST("/get_user_id_p/:id", comp.ApiUser.ApiGetUserByIdPublic())
 
@@ -60,6 +62,10 @@ func StartService(r *gin.Engine) {
 
 	v2 := r.Group("v2")
 	v2.Use(middleware.Cors())
+
+	authV2 := v2.Group("auth").Use(middleware.RequiredAuth(comp.BzIntrospect))
+	authV2.POST("/change_password", comp.ApiAuth.ApiAuthChange())
+
 	userV2 := v2.Group("user").Use(middleware.RequiredAuth(comp.BzIntrospect))
 	userV2.POST("/get_user_id", comp.ApiUser.ApiGetUserById())
 	userV2.POST("/update_user_id", comp.ApiUser.ApiUpdateUser())
@@ -92,22 +98,17 @@ func StartService(r *gin.Engine) {
 	subStorageV2.POST("/:id", comp.ApiStorageSub.ApiGetStorageSubsById())
 
 	supportTicketV2 := v2.Group("support-ticket").Use(middleware.RequiredAuth(comp.BzIntrospect))
-	supportTicketV2.POST("/:id", comp.ApiSupportTicket.ApiCreateNewTicket())
+	supportTicketV2.POST("/:subid", comp.ApiSupportTicket.ApiCreateNewTicket())
 	supportTicketV2.POST("/", comp.ApiSupportTicket.ApiGetTicketsByUserID())
 	supportTicketV2.POST("/update", comp.ApiSupportTicket.ApiUpdateTicket())
 
 	ticketMesageV2 := v2.Group("ticket-message").Use(middleware.RequiredAuth(comp.BzIntrospect))
 	ticketMesageV2.POST("/:id", comp.ApiTicketMessage.ApiGetMessagesByTicket())
-	// Sửa route WebSocket - đặt middleware trước handler
-	// Thêm debug trực tiếp trong route
+
 	ticketMesageV1 := v1.Group("ticket-message")
 	ticketMesageV1.GET("/ws", func(c *gin.Context) {
 		log.Printf("[ROUTE DEBUG] WebSocket route called - URL: %s", c.Request.URL.String())
-
-		// Gọi middleware thủ công để test
 		middleware.RequiredAuthAny(comp.BzIntrospect)(c)
-
-		// Nếu không bị abort, tiếp tục xử lý WebSocket
 		if !c.IsAborted() {
 			log.Printf("[ROUTE DEBUG] Authentication passed, proceeding to WebSocket")
 			comp.ChatHub.HandleTicketWS(c.Writer, c.Request)

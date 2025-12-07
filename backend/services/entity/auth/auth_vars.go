@@ -52,15 +52,35 @@ func (r *LoginForm) Validate() error {
 	return nil
 }
 
-type ForgotPassword struct {
+type ForgotPasswordForm struct {
 	Email string `json:"email"`
 }
 
-func (f *ForgotPassword) Validate() error {
+func (f *ForgotPasswordForm) Validate() error {
 	f.Email = strings.TrimSpace(f.Email)
 	err_email := CheckEmail(f.Email)
 	if err_email != nil {
 		return err_email
 	}
 	return nil
+}
+
+type ChangePasswordForm struct {
+	NewPassword string `json:"new_password"`
+}
+
+func (r *ChangePasswordForm) Validate() error {
+
+	r.NewPassword = strings.TrimSpace(r.NewPassword)
+
+	err_password := CheckPasword(r.NewPassword)
+	if err_password != nil {
+		return err_password
+	}
+
+	return nil
+}
+
+type GoogleLoginForm struct {
+	AccessToken string `json:"access_token"`
 }

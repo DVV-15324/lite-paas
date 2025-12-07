@@ -1,5 +1,5 @@
 import { AxiosResponse } from "axios"
-import { LoginType, RegisterType } from "../model/auth"
+import { LoginType, RegisterType, ChangePasswordType, ForgotPasswordType } from "../model/auth"
 import { axiosInstance } from "../../common/api"
 
 
@@ -32,3 +32,17 @@ export const ApiLoginGoogle = async <T>(token: string): Promise<T> => {
 
     return response.data;
 }
+
+export const ApiForgetPassword = async<T>(data: ForgotPasswordType): Promise<T> => {
+    const response = await axiosInstance.post<T>(`/v1/auth/forgot_password`, data)
+
+    return response.data
+}
+
+
+export const ApiChangePassword = async <T>(data: ChangePasswordType): Promise<T> => {
+    const response = await axiosInstance.post<T>(`/v2/auth/change_password`, data)
+
+    return response.data
+}
+

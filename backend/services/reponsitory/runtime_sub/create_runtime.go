@@ -13,7 +13,7 @@ import (
 func (s *RuntimeSubServiceSQL) CreateRuntimeSub(ctx context.Context, sub *entityRuntimeSub.CreateRuntimeSubscription, userName string, user_id int64, service_id int64) (int64, error) {
 	// 1. Insert bản ghi với link_return tạm thời null hoặc rỗng
 	queryInsert := `
-    INSERT INTO user_runtime_sub (user_id, service_id, link_return, status)
+    INSERT INTO user_runtime (user_id, service_id, link_return, status)
     OUTPUT INSERTED.id
     VALUES (@user_id, @service_id, '', @status);
 `
@@ -33,7 +33,7 @@ func (s *RuntimeSubServiceSQL) CreateRuntimeSub(ctx context.Context, sub *entity
 	linkReturn = c_utils.SanitizeK8sName(linkReturn)
 	// 3. Update lại bản ghi
 	queryUpdate := `
-    UPDATE user_runtime_sub
+    UPDATE user_runtime
     SET link_return = @link_return
     WHERE id = @id
 `

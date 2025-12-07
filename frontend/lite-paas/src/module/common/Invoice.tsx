@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PaymentForm } from "../payments/components/PaymentForm";
 
-
 interface Phone {
     String: string;
     Valid: boolean;
@@ -165,7 +164,8 @@ const Invoice: React.FC = () => {
     const formatAmount = (amount: number): string => {
         return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
-            currency: 'VND'
+            currency: 'VND',
+            minimumFractionDigits: 0
         }).format(amount);
     };
 
@@ -207,8 +207,9 @@ const Invoice: React.FC = () => {
     const handlePaymentSuccess = () => {
         setShowPaymentForm(false);
         setInvoiceToPay(null);
-        // Có thể thêm logic refresh danh sách hóa đơn ở đây
-        alert("✅ Thanh toán thành công! Hóa đơn sẽ được cập nhật trong giây lát.");
+        // Refresh danh sách hóa đơn
+        refreshInvoices();
+        alert("✅ Thanh toán thành công!");
     };
 
     const handlePaymentCancel = () => {
@@ -254,6 +255,9 @@ const Invoice: React.FC = () => {
         }
     };
 
+    // Lọc các hóa đơn không phải là 'paid'
+    const unpaidInvoices = invoices.filter(invoice => invoice.status !== 'paid');
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -264,11 +268,11 @@ const Invoice: React.FC = () => {
 
     if (error) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <div className="text-lg text-red-600">Lỗi: {error}</div>
+            <div className="flex flex-col justify-center items-center h-64 p-4 text-center">
+                <div className="text-lg text-red-600 mb-4">Lỗi: {error}</div>
                 <button
                     onClick={refreshInvoices}
-                    className="ml-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full max-w-xs"
                 >
                     Thử lại
                 </button>
@@ -279,132 +283,263 @@ const Invoice: React.FC = () => {
     return (
         <div className="relative bg-gray-50 p-4 lg:p-8">
             <div className="max-w-7xl mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
+                <div className="mb-6 lg:mb-8">
+                    <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800 mb-2 lg:mb-4">
                         Danh sách hóa đơn
                     </h1>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-base lg:text-lg text-gray-600">
                         Theo dõi tất cả hóa đơn dịch vụ của bạn trên BNCloud
                     </p>
                 </div>
 
-                {invoices.length === 0 ? (
-                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-                        <p className="text-gray-600 text-lg">Không có hóa đơn nào</p>
+                {unpaidInvoices.length === 0 ? (
+                    <div className="bg-white rounded-xl lg:rounded-2xl shadow-lg p-6 lg:p-8 text-center">
+                        <p className="text-gray-600 text-base lg:text-lg">Không có hóa đơn nào cần thanh toán</p>
                         <button
                             onClick={refreshInvoices}
-                            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full max-w-xs"
                         >
                             Tải lại
                         </button>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <table className="min-w-full table-auto">
-                            <thead className="bg-gray-100">
-                                <tr className="text-left text-gray-600 text-sm uppercase tracking-wider">
-                                    <th className="px-6 py-3">Mã HĐ</th>
-                                    <th className="px-6 py-3">Khách hàng</th>
-                                    <th className="px-6 py-3">Dịch vụ</th>
-                                    <th className="px-6 py-3">Ngày tạo</th>
-                                    <th className="px-6 py-3">Số tiền</th>
-                                    <th className="px-6 py-3">Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {invoices.map((invoice) => {
-                                    const statusDisplay = getStatusDisplay(invoice.status);
-                                    const serviceInfo = getServiceInfo(invoice);
-                                    return (
-                                        <tr
-                                            key={invoice.id}
-                                            className="border-b hover:bg-gray-50 transition-all duration-150 cursor-pointer"
-                                            onClick={() => handleDetailClick(invoice)}
-                                        >
-                                            <td className="px-6 py-4 font-medium text-gray-800">
-                                                #{invoice.id.substring(0, 8)}...
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-700">
-                                                <div>
-                                                    <div className="font-semibold">{invoice.user?.name}</div>
-                                                    <div className="text-sm text-gray-500">{invoice.user?.email}</div>
+                    <>
+                        {/* Desktop Table View */}
+                        <div className="hidden lg:block bg-white rounded-2xl shadow-lg overflow-x-auto">
+                            <table className="min-w-full table-auto">
+                                <thead className="bg-gray-100">
+                                    <tr className="text-left text-gray-600 text-sm uppercase tracking-wider">
+                                        <th className="px-6 py-3">Mã HĐ</th>
+                                        <th className="px-6 py-3">Khách hàng</th>
+                                        <th className="px-6 py-3">Dịch vụ</th>
+                                        <th className="px-6 py-3">Ngày tạo</th>
+                                        <th className="px-6 py-3">Số tiền</th>
+                                        <th className="px-6 py-3">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {unpaidInvoices.map((invoice) => {
+                                        const statusDisplay = getStatusDisplay(invoice.status);
+                                        const serviceInfo = getServiceInfo(invoice);
+                                        return (
+                                            <tr
+                                                key={invoice.id}
+                                                className="border-b hover:bg-gray-50 transition-all duration-150 cursor-pointer"
+                                                onClick={() => handleDetailClick(invoice)}
+                                            >
+                                                <td className="px-6 py-4 font-medium text-gray-800">
+                                                    #{invoice.id.substring(0, 8)}...
+                                                </td>
+                                                <td className="px-6 py-4 text-gray-700">
+                                                    <div>
+                                                        <div className="font-semibold">{invoice.user?.name}</div>
+                                                        <div className="text-sm text-gray-500">{invoice.user?.email}</div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-gray-700">{serviceInfo?.name || invoice.service}</td>
+                                                <td className="px-6 py-4 text-gray-600">{invoice.date}</td>
+                                                <td className="px-6 py-4 font-semibold text-blue-600">
+                                                    {formatAmount(invoice.amount)}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`font-semibold ${statusDisplay.color}`}>
+                                                        {statusDisplay.text}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="lg:hidden space-y-4">
+                            {unpaidInvoices.map((invoice) => {
+                                const statusDisplay = getStatusDisplay(invoice.status);
+                                const serviceInfo = getServiceInfo(invoice);
+                                return (
+                                    <div
+                                        key={invoice.id}
+                                        className="bg-white rounded-xl shadow-lg p-4 border border-gray-200"
+                                        onClick={() => handleDetailClick(invoice)}
+                                    >
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <div className="font-bold text-gray-800 text-sm">
+                                                    #{invoice.id.substring(0, 8)}...
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-700">{serviceInfo?.name || invoice.service}</td>
-                                            <td className="px-6 py-4 text-gray-600">{invoice.date}</td>
-                                            <td className="px-6 py-4 font-semibold text-blue-600">
-                                                {formatAmount(invoice.amount)}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`font-semibold ${statusDisplay.color}`}>
-                                                    {statusDisplay.text}
+                                                <div className="text-lg font-semibold text-gray-900 mt-1">
+                                                    {serviceInfo?.name || invoice.service}
+                                                </div>
+                                            </div>
+                                            <span className={`font-semibold text-sm ${statusDisplay.color}`}>
+                                                {statusDisplay.text}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600 text-sm">Khách hàng:</span>
+                                                <span className="font-medium text-gray-800 text-sm">{invoice.user?.name}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600 text-sm">Ngày tạo:</span>
+                                                <span className="text-gray-700 text-sm">{invoice.date}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600 text-sm">Số tiền:</span>
+                                                <span className="font-bold text-blue-600">
+                                                    {formatAmount(invoice.amount)}
                                                 </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 pt-3 border-t border-gray-100">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDetailClick(invoice);
+                                                }}
+                                                className="w-full bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                                            >
+                                                Xem chi tiết
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
                 )}
             </div>
 
             {/* Modal chi tiết hóa đơn */}
             {selectedInvoice && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
-                    <div className="bg-white p-6 rounded-2xl shadow-2xl w-[90%] max-w-4xl">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                            Hóa đơn #{selectedInvoice.id}
-                        </h2>
-                        <p className="text-gray-600 mb-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in p-2 md:p-4">
+                    <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-2">
+                        <div className="flex justify-between items-start mb-4">
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-800">
+                                Hóa đơn #{selectedInvoice.id.substring(0, 8)}...
+                            </h2>
+                            <button
+                                onClick={handleCloseDetail}
+                                className="text-gray-400 hover:text-gray-600 text-2xl"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <p className="text-gray-600 mb-4 text-sm md:text-base">
                             {selectedInvoice.details}
                         </p>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                             {/* Thông tin khách hàng */}
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm text-gray-700">
-                                <h3 className="font-semibold text-lg mb-3 text-gray-800">Thông tin khách hàng</h3>
-                                <div>Họ tên: <span className="font-semibold">{selectedInvoice.user?.name}</span></div>
-                                <div>Email: <span className="font-semibold">{selectedInvoice.user?.email}</span></div>
-                                <div>Điện thoại: <span className="font-semibold">{formatContactInfo(selectedInvoice.user?.phone)}</span></div>
-                                <div>Địa chỉ: <span className="font-semibold">{formatContactInfo(selectedInvoice.user?.address)}</span></div>
+                            <div className="bg-gray-50 rounded-lg p-3 md:p-4 space-y-2 text-sm text-gray-700">
+                                <h3 className="font-semibold text-base md:text-lg mb-2 md:mb-3 text-gray-800">
+                                    Thông tin khách hàng
+                                </h3>
+                                <div className="truncate">
+                                    <span className="text-gray-600">Họ tên: </span>
+                                    <span className="font-semibold block truncate">{selectedInvoice.user?.name}</span>
+                                </div>
+                                <div className="truncate">
+                                    <span className="text-gray-600">Email: </span>
+                                    <span className="font-semibold block truncate">{selectedInvoice.user?.email}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">Điện thoại: </span>
+                                    <span className="font-semibold">{formatContactInfo(selectedInvoice.user?.phone)}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">Địa chỉ: </span>
+                                    <span className="font-semibold">{formatContactInfo(selectedInvoice.user?.address)}</span>
+                                </div>
                             </div>
 
                             {/* Thông tin hóa đơn */}
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm text-gray-700">
-                                <h3 className="font-semibold text-lg mb-3 text-gray-800">Thông tin hóa đơn</h3>
-                                <div>Loại dịch vụ: <span className="font-semibold capitalize">
-                                    {selectedInvoice.service_type}
-                                </span></div>
-                                <div>Service ID: <span className="font-semibold">{selectedInvoice.service_id}</span></div>
-                                <div>Ngày tạo: <span className="font-semibold">{selectedInvoice.date}</span></div>
-                                <div>Hạn thanh toán: <span className="font-semibold">{formatDueDate(selectedInvoice.due_date)}</span></div>
-                                <div>Số tiền: <span className="font-semibold text-blue-600">{formatAmount(selectedInvoice.amount)}</span></div>
-                                <div>Trạng thái:
-                                    <span className={`ml-2 font-semibold ${getStatusDisplay(selectedInvoice.status).color}`}>
+                            <div className="bg-gray-50 rounded-lg p-3 md:p-4 space-y-2 text-sm text-gray-700">
+                                <h3 className="font-semibold text-base md:text-lg mb-2 md:mb-3 text-gray-800">
+                                    Thông tin hóa đơn
+                                </h3>
+                                <div>
+                                    <span className="text-gray-600">Loại dịch vụ: </span>
+                                    <span className="font-semibold capitalize">
+                                        {selectedInvoice.service_type}
+                                    </span>
+                                </div>
+                                <div className="truncate">
+                                    <span className="text-gray-600">Service ID: </span>
+                                    <span className="font-semibold block truncate">{selectedInvoice.service_id}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">Ngày tạo: </span>
+                                    <span className="font-semibold">{selectedInvoice.date}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">Hạn thanh toán: </span>
+                                    <span className="font-semibold">{formatDueDate(selectedInvoice.due_date)}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">Số tiền: </span>
+                                    <span className="font-semibold text-blue-600">{formatAmount(selectedInvoice.amount)}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">Trạng thái: </span>
+                                    <span className={`ml-1 font-semibold ${getStatusDisplay(selectedInvoice.status).color}`}>
                                         {getStatusDisplay(selectedInvoice.status).text}
                                     </span>
                                 </div>
-                                <div>Cập nhật lần cuối: <span className="font-semibold">{formatDate(selectedInvoice.updated_at)}</span></div>
+                                <div>
+                                    <span className="text-gray-600">Cập nhật lần cuối: </span>
+                                    <span className="font-semibold">{formatDate(selectedInvoice.updated_at)}</span>
+                                </div>
                             </div>
 
                             {/* Thông tin dịch vụ */}
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm text-gray-700">
-                                <h3 className="font-semibold text-lg mb-3 text-gray-800">Thông tin dịch vụ</h3>
+                            <div className="bg-gray-50 rounded-lg p-3 md:p-4 space-y-2 text-sm text-gray-700">
+                                <h3 className="font-semibold text-base md:text-lg mb-2 md:mb-3 text-gray-800">
+                                    Thông tin dịch vụ
+                                </h3>
                                 {getServiceInfo(selectedInvoice) ? (
                                     <>
-                                        <div>Tên dịch vụ: <span className="font-semibold">{getServiceInfo(selectedInvoice)?.name}</span></div>
-                                        <div>Mô tả: <span className="font-semibold">{getServiceInfo(selectedInvoice)?.description}</span></div>
-                                        <div>CPU: <span className="font-semibold">{getServiceInfo(selectedInvoice)?.cpu} core</span></div>
-                                        <div>RAM: <span className="font-semibold">{getServiceInfo(selectedInvoice)?.ram} MB</span></div>
-                                        <div>Storage: <span className="font-semibold">{getServiceInfo(selectedInvoice)?.storage} GB</span></div>
-                                        <div>Version: <span className="font-semibold">{getServiceInfo(selectedInvoice)?.version}</span></div>
-                                        <div>Trạng thái dịch vụ: <span className="font-semibold">
-                                            {getServiceInfo(selectedInvoice)?.status ? 'Hoạt động' : 'Tạm ngưng'}
-                                        </span></div>
-                                        <div>Giá gốc: <span className="font-semibold text-green-600">
-                                            {formatAmount(getServiceInfo(selectedInvoice)?.price || 0)}
-                                        </span></div>
+                                        <div className="truncate">
+                                            <span className="text-gray-600">Tên dịch vụ: </span>
+                                            <span className="font-semibold block truncate">{getServiceInfo(selectedInvoice)?.name}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">Mô tả: </span>
+                                            <span className="font-semibold">{getServiceInfo(selectedInvoice)?.description}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">CPU: </span>
+                                            <span className="font-semibold">{getServiceInfo(selectedInvoice)?.cpu} core</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">RAM: </span>
+                                            <span className="font-semibold">{getServiceInfo(selectedInvoice)?.ram} MB</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">Storage: </span>
+                                            <span className="font-semibold">{getServiceInfo(selectedInvoice)?.storage} GB</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">Version: </span>
+                                            <span className="font-semibold">{getServiceInfo(selectedInvoice)?.version}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">Trạng thái dịch vụ: </span>
+                                            <span className="font-semibold">
+                                                {getServiceInfo(selectedInvoice)?.status ? 'Hoạt động' : 'Tạm ngưng'}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-600">Giá gốc: </span>
+                                            <span className="font-semibold text-green-600">
+                                                {formatAmount(getServiceInfo(selectedInvoice)?.price || 0)}
+                                            </span>
+                                        </div>
                                     </>
                                 ) : (
                                     <div className="text-gray-500">Không có thông tin dịch vụ</div>
@@ -412,17 +547,17 @@ const Invoice: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end space-x-3 mt-6">
+                        <div className="flex flex-col md:flex-row justify-end space-y-2 md:space-y-0 md:space-x-3 mt-4 md:mt-6">
                             <button
                                 onClick={handleCloseDetail}
-                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                                className="bg-gray-200 text-gray-700 px-4 py-3 md:py-2 rounded-lg hover:bg-gray-300 transition-colors w-full md:w-auto"
                             >
                                 Đóng
                             </button>
                             {(selectedInvoice.status === 'pending' || selectedInvoice.status === 'unpaid') && (
                                 <button
                                     onClick={() => handlePayment(selectedInvoice)}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="bg-blue-600 text-white px-4 py-3 md:py-2 rounded-lg hover:bg-blue-700 transition-colors w-full md:w-auto"
                                 >
                                     Thanh toán
                                 </button>
@@ -448,8 +583,8 @@ const Invoice: React.FC = () => {
 
             <style>{`
                 @keyframes fade-in {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
                 .animate-fade-in {
                     animation: fade-in 0.2s ease-out;

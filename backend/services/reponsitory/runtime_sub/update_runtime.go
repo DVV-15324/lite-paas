@@ -36,7 +36,7 @@ func (r *RuntimeSubServiceSQL) UpdateRuntimesub(ctx context.Context, id int, run
 	}
 
 	// Thêm WHERE id = @id
-	query := fmt.Sprintf("UPDATE user_runtime_sub SET %s WHERE id = @id", strings.Join(setClauses, ", "))
+	query := fmt.Sprintf("UPDATE user_runtime SET %s WHERE id = @id", strings.Join(setClauses, ", "))
 	args = append(args, sql.Named("id", id))
 
 	_, err := r.db.ExecContext(ctx, query, args...)

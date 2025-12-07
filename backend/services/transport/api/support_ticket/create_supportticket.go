@@ -18,7 +18,7 @@ func (api *ApiSupportTicket) ApiCreateNewTicket() func(c *gin.Context) {
 		}
 		id := c_ctx.GetRequestContext(c.Request.Context())
 		uid := c_uid.DecodeFromBase58(id.GetSub())
-		sv_id := c.Param("id")
+		sv_id := c.Param("subid")
 		sv_uid := c_uid.DecodeFromBase58(sv_id)
 		_, err := api.bz.CreateNewTicket(c.Request.Context(), &req, int(uid.LocalID), int(sv_uid.LocalID))
 		if err != nil {

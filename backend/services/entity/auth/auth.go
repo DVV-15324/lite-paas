@@ -19,9 +19,6 @@ func TableName() string {
 	return "auths"
 }
 
-type GoogleLoginForm struct {
-	AccessToken string `json:"access_token"`
-}
 type Config struct {
 	GoogleClientID string
 }

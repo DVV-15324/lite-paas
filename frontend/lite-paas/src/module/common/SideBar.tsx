@@ -1,8 +1,5 @@
-
-
-
 import React, { useState } from "react";
-import BNCloudServices from "./AllService";
+import LitePaasServices from "./AllService";
 import SupportRequest from "./Support";
 import Invoice from "./Invoice";
 import HistoryInvoice from "./History";
@@ -14,7 +11,7 @@ interface MenuItem {
     badge?: string;
 }
 
-const BNCloudSidebar: React.FC = () => {
+const LitePaasSidebar: React.FC = () => {
     const [activeMenu, setActiveMenu] = useState<number>(1);
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
@@ -27,9 +24,9 @@ const BNCloudSidebar: React.FC = () => {
     ];
 
     return (
-        <div className="w-full min-h-0 flex flex-col">
+        <div className="w-full min-h-0 flex flex-col relative">
             {/* Header (Mobile) */}
-            <header className="lg:hidden bg-white shadow-sm p-4 flex-shrink-0">
+            <header className="lg:hidden p-4 flex-shrink-0 z-50">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -37,7 +34,7 @@ const BNCloudSidebar: React.FC = () => {
                     >
                         <span className="text-xl">☰</span>
                     </button>
-                    <h1 className="font-bold text-lg text-gray-800">BNCloud</h1>
+
                 </div>
             </header>
 
@@ -75,7 +72,6 @@ const BNCloudSidebar: React.FC = () => {
                                             : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                                             }`}
                                     >
-
                                         <span className="font-medium">{item.name}</span>
                                         {item.badge && (
                                             <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
@@ -90,7 +86,7 @@ const BNCloudSidebar: React.FC = () => {
                 </aside>
 
                 {/* Main Content với scroll */}
-                <main className="flex-1 min-h-0 p-4 lg:p-8">
+                <main className="flex-1 min-h-0 p-4 lg:p-8 relative">
                     <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 h-full flex flex-col">
                         {/* Header cố định */}
                         <div className="flex-shrink-0 mb-6">
@@ -102,7 +98,7 @@ const BNCloudSidebar: React.FC = () => {
                         {/* Content area với scroll */}
                         <div className="flex-1 min-h-0 overflow-y-auto">
                             {activeMenu === 1 ? (
-                                <BNCloudServices />
+                                <LitePaasServices />
                             ) : activeMenu === 2 ? (
                                 <MyServices />
                             ) : activeMenu === 4 ? (
@@ -121,15 +117,15 @@ const BNCloudSidebar: React.FC = () => {
                 </main>
             </div>
 
-            {/* Overlay khi sidebar mở (mobile) */}
+            {/* Overlay khi sidebar mở (mobile) - Sửa với transparency hoàn toàn */}
             {isSidebarOpen && (
                 <div
                     onClick={() => setIsSidebarOpen(false)}
-                    className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40 lg:hidden"
+                    className="fixed inset-0 z-40 lg:hidden"
                 />
             )}
         </div>
     );
 };
 
-export default BNCloudSidebar;
+export default LitePaasSidebar;

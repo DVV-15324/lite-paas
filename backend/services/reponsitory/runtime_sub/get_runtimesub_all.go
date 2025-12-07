@@ -7,7 +7,7 @@ import (
 )
 
 func (s *RuntimeSubServiceSQL) ListRuntimeSubsByUser(ctx context.Context, userID int64) ([]*entityRuntimeSub.RuntimeSubscription, error) {
-	query := `SELECT id, user_id, service_id, link_return, status, created_at, updated_at FROM user_runtime_sub WHERE user_id=@user_id`
+	query := `SELECT id, user_id, service_id, link_return, status, created_at, updated_at FROM user_runtime WHERE user_id=@user_id`
 	rows, err := s.db.QueryContext(ctx, query, sql.Named("user_id", userID))
 	if err != nil {
 		return nil, err

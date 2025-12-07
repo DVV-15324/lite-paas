@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	c_ctx "lite-paas/common/ctx"
 	c_errors "lite-paas/common/errors"
 	c_jwt "lite-paas/common/jwt"
@@ -47,6 +48,8 @@ func RequiredAuthQuery(bz BzAuth) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// Lấy token từ query parameter
 		token, err := extractTokenFromQuery(c)
+		fmt.Println("token:")
+		fmt.Println(token)
 		if err != nil {
 			app := c_errors.NewAppError(403, http.StatusText(http.StatusForbidden), err)
 			c_errors.NewErrorH(c, app)

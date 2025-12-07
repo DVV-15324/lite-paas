@@ -7,7 +7,7 @@ export const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => 
 
     if (loading) return <div>Đang tải...</div>;
 
-    if (profile) return <Navigate to="/" replace />;
+    if (profile) return <Navigate to="/dashboard" replace />;
 
     return <>{children}</>;
 };

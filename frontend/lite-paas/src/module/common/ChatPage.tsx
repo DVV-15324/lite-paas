@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-
+import { useHookAuth } from "../auth/hooks/authHooks";
 interface ChatMessage {
     id: string;
     sender: "user" | "support";
@@ -12,7 +12,6 @@ interface SupportRequestItem {
     id: string;
     service: string;
     title: string;
-    date: string;
     status: string;
     content?: string;
     service_type?: string;
@@ -25,7 +24,7 @@ interface ChatPageProps {
 }
 
 interface WSMessage {
-    sender_id: string;
+    sender_id?: string;
     message: string;
     message_type: string;
 }
@@ -39,20 +38,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
     const [sending, setSending] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const ws = useRef<WebSocket | null>(null);
-
-    // Lấy current user ID
-    const getCurrentUserId = (): string => {
-        const userData = localStorage.getItem("user_info");
-        if (userData) {
-            try {
-                const user = JSON.parse(userData);
-                return user.id || "1";
-            } catch (e) {
-                console.error("Error parsing user data:", e);
-            }
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const { profile } = useHookAuth();
+    // Auto-scroll to bottom khi có tin nhắn mới
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-        return "1";
-    };
+    }, [messages]);
+
+
 
     // Fetch messages từ API (cho lịch sử tin nhắn)
     const fetchMessages = async () => {
@@ -73,16 +68,24 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
 
             const data = await response.json();
 
-            const currentUserId = getCurrentUserId();
+            const currentUserId = profile?.id;
             const transformedMessages: ChatMessage[] = data.map((msg: any) => ({
                 id: msg.id,
-                sender: msg.sender_id === currentUserId ? "user" : "support",
+                // So sánh dưới dạng string
+                sender: String(msg.sender_id) === currentUserId ? "user" : "support",
                 content: msg.message,
                 time: new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                 created_at: msg.created_at
             }));
 
-            setMessages(transformedMessages);
+            // Sắp xếp tin nhắn theo thời gian (cũ nhất trước, mới nhất sau)
+            const sortedMessages = transformedMessages.sort((a, b) => {
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return timeA - timeB;
+            });
+
+            setMessages(sortedMessages);
         } catch (error) {
             console.error('Error fetching messages:', error);
         } finally {
@@ -107,9 +110,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
                     console.log('Received WebSocket message:', event.data);
                     const data = JSON.parse(event.data);
 
-                    const currentUserId = getCurrentUserId();
+                    const currentUserId = profile?.id;
                     const newMessage: ChatMessage = {
                         id: data.id || `ws-${Date.now()}`,
+                        // So sánh dưới dạng string
                         sender: String(data.sender_id) === currentUserId ? "user" : "support",
                         content: data.message,
                         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -118,7 +122,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
 
                     setMessages(prev => {
                         if (!prev.some(msg => msg.id === newMessage.id)) {
-                            return [...prev, newMessage];
+                            const updatedMessages = [...prev, newMessage];
+                            // Sắp xếp lại sau khi thêm tin nhắn mới
+                            return updatedMessages.sort((a, b) => {
+                                const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                                const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                                return timeA - timeB;
+                            });
                         }
                         return prev;
                     });
@@ -159,7 +169,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
             }
 
             const messageData: WSMessage = {
-                sender_id: getCurrentUserId(),
+                sender_id: profile?.id,
                 message: message,
                 message_type: "text"
             };
@@ -200,9 +210,19 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
                 sender: "user",
                 content: newMsg,
                 time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                created_at: new Date().toISOString()
             };
 
-            setMessages(prev => [...prev, tempMessage]);
+            // Thêm tin nhắn tạm thời và sắp xếp lại
+            setMessages(prev => {
+                const updatedMessages = [...prev, tempMessage];
+                return updatedMessages.sort((a, b) => {
+                    const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                    const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                    return timeA - timeB;
+                });
+            });
+
             const messageToSend = newMsg;
             setNewMsg("");
 
@@ -234,7 +254,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
                             <p className="text-sm text-gray-500">
                                 {request.service} ({request.status})
                             </p>
-                            <p className="text-xs text-gray-400">{request.date}</p>
                         </div>
                         <div className="flex items-center space-x-2">
                             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
@@ -252,14 +271,18 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
                     </button>
                 </div>
 
-                {/* Chat messages */}
-                <div className="h-[400px] overflow-y-auto p-4 space-y-3 bg-gray-50">
+                {/* Chat messages - Hiển thị từ dưới lên trên */}
+                <div
+                    ref={chatContainerRef}
+                    className="h-[400px] overflow-y-auto p-4 space-y-3 bg-gray-50 flex flex-col-reverse"
+                >
                     {loading ? (
                         <p className="text-gray-500 text-center py-8">Đang tải tin nhắn...</p>
                     ) : messages.length === 0 ? (
                         <p className="text-gray-500 text-center py-8">Chưa có tin nhắn nào.</p>
                     ) : (
-                        messages.map((msg) => (
+                        // Đảo ngược thứ tự hiển thị để tin nhắn mới nhất ở dưới cùng
+                        [...messages].reverse().map((msg) => (
                             <div
                                 key={msg.id}
                                 className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
@@ -296,7 +319,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ request, onBack }) => {
                         className="bg-blue-500 text-white px-5 py-2 rounded-xl hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                         disabled={sending || !newMsg.trim() || !isConnected}
                     >
-                        {sending ? '⏳' : '📤'} {sending ? 'Đang gửi...' : 'Gửi'}
+                        {sending ? '' : ''} {sending ? 'Đang gửi...' : 'Gửi'}
                     </button>
                 </form>
 

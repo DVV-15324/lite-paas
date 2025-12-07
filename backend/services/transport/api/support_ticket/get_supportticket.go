@@ -1,10 +1,11 @@
 package support_ticket
 
 import (
-	"github.com/gin-gonic/gin"
 	c_ctx "lite-paas/common/ctx"
 	c_uid "lite-paas/common/uid"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (api *ApiSupportTicket) ApiGetTicketsByUserID() func(c *gin.Context) {
@@ -24,6 +25,7 @@ func (api *ApiSupportTicket) ApiGetTicketsByUserID() func(c *gin.Context) {
 		}
 		for i := 0; i < len(ticket); i++ {
 			ticket[i].Mask()
+
 		}
 		c.JSON(http.StatusOK, ticket)
 	}

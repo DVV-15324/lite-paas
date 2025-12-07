@@ -2,8 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	c_errors "lite-paas/common/errors"
 	c_jwt "lite-paas/common/jwt"
@@ -15,13 +13,7 @@ import (
 	"gopkg.in/mail.v2"
 )
 
-func generatePassWord(length int) string {
-	bytes := make([]byte, length)
-	rand.Read(bytes)
-	return hex.EncodeToString(bytes)
-}
-
-func (bz *BusinessAuth) BzForgetPassword(ctx context.Context, data *entityAuth.ForgotPassword) (*string, *c_errors.AppError) {
+func (bz *BusinessAuth) BzForgetPassword(ctx context.Context, data *entityAuth.ForgotPasswordForm) (*string, *c_errors.AppError) {
 
 	if err := data.Validate(); err != nil {
 		app := c_errors.NewAppError(400, http.StatusText(400), err)
@@ -43,7 +35,7 @@ func (bz *BusinessAuth) BzForgetPassword(ctx context.Context, data *entityAuth.F
 	token_forget := c_jwt.NewJwtServer("vu-dep-trai-nhat-the-gioi", 900)
 	token := token_forget.IssueToken(ctx, sub, tid)
 
-	resetLink := fmt.Sprintf("https://litepaas.com/reset-password?token=%s", token.AccessToken.Token)
+	resetLink := fmt.Sprintf("http://localhost:5173/reset-password?token=%s", token.AccessToken.Token)
 
 	if err := sendResetEmail(data.Email, resetLink); err != nil {
 		app := c_errors.NewAppError(500, "Failed to send reset email", err)

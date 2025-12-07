@@ -61,6 +61,7 @@ type ApiAuth interface {
 	ApiRegisterAuth() func(c *gin.Context)
 	ApiGoogleLogin() func(c *gin.Context)
 	ApiAuthForget() func(c *gin.Context)
+	ApiAuthChange() func(c *gin.Context)
 }
 type ApiUser interface {
 	ApiGetUserById() func(c *gin.Context)

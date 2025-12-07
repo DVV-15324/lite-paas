@@ -15,6 +15,8 @@ import RuntimeService from "./RuntimeUI"
 import MyDBSR from "./MyDBSR"
 import { PaymentForm } from "../payments/components/PaymentForm"
 import { PaymentResult } from "../payments/components/PaymentResult"
+import { ChangePasswordPage } from "../auth/components/ChangePassWord"
+import { ResetPassword } from "./ResetPassword"
 
 
 
@@ -42,14 +44,23 @@ export const MainRoutes = () => {
                 }
             />
             <Route
+                path="/"
+                element={
+                    <PublicOnlyRoute>
+                        <MainLayout>
+                            <BNCloud />
+                        </MainLayout>
+                    </PublicOnlyRoute>
+                }
+            />
+            <Route
                 element={
                     <MainLayout>
                         <Outlet />
                     </MainLayout>
                 }
             >
-                <Route path="/" element={<BNCloud />} />
-                <Route path="/d" element={<BNCloudSidebar />} />
+                <Route path="/dashboard" element={<BNCloudSidebar />} />
                 <Route path="/runtime/:id" element={<RuntimeService />} />
                 <Route path="/storage/:id/:type" element={<MyDBSR />} />
                 <Route path="/payment" element={<PaymentForm />} />
@@ -65,7 +76,20 @@ export const MainRoutes = () => {
                 }
             >
                 <Route path="profile" element={<ProfileUI />} />
+
             </Route>
+            <Route
+                element={
+                    <PrivateComponent>
+                        <AuthLayout>
+                            <Outlet />
+                        </AuthLayout>
+                    </PrivateComponent>
+                }
+            >
+                <Route path="/change-password" element={<ChangePasswordPage />} />
+            </Route >
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
         </Routes >
     );

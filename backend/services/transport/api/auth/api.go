@@ -12,7 +12,8 @@ type BusinessChat interface {
 	LoginAuth(ctx context.Context, au *entityAuth.LoginForm) (*c_jwt.TokenResponse, *c_errors.AppError)
 	BzRegisterAuth(ctx context.Context, auth *entityAuth.RegisterForm) *c_errors.AppError
 	LoginWithGoogle(ctx context.Context, input *entityAuth.GoogleLoginForm) (*c_jwt.TokenResponse, *c_errors.AppError)
-	BzForgetPassword(ctx context.Context, data *entityAuth.ForgotPassword) (*string, *c_errors.AppError)
+	BzForgetPassword(ctx context.Context, data *entityAuth.ForgotPasswordForm) (*string, *c_errors.AppError)
+	BzUpdateChangeAuth(ctx context.Context, data *entityAuth.ChangePasswordForm, userId int) *c_errors.AppError
 }
 type ApiAuth struct {
 	bz BusinessChat
