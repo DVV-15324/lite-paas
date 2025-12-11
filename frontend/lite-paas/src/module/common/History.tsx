@@ -218,8 +218,6 @@ const HistoryInvoice: React.FC = () => {
                 return status;
         }
     };
-
-    // Fetch dữ liệu từ API
     useEffect(() => {
         const fetchInvoices = async () => {
             try {
@@ -242,13 +240,23 @@ const HistoryInvoice: React.FC = () => {
                 }
 
                 const data: Invoice[] = await response.json();
-                setInvoices(data);
+
+                const invoiceArray = Array.isArray(data) ? data : [];
+                setInvoices(invoiceArray);
 
                 // Set năm mặc định là năm mới nhất (chỉ tính non-pending)
-                if (data.length > 0) {
-                    const nonPendingInvoices = data.filter(inv => inv.status.toLowerCase() !== "pending");
+                if (invoiceArray.length > 0) {
+                    const nonPendingInvoices = invoiceArray.filter(inv => inv.status.toLowerCase() !== "pending");
                     if (nonPendingInvoices.length > 0) {
-                        const years = getYears();
+                        // Lấy danh sách năm từ invoiceArray (đã được kiểm tra)
+                        const yearsSet = new Set<string>();
+                        invoiceArray.forEach(invoice => {
+                            if (invoice.status.toLowerCase() !== "pending") {
+                                const year = new Date(invoice.created_at).getFullYear().toString();
+                                yearsSet.add(year);
+                            }
+                        });
+                        const years = Array.from(yearsSet).sort((a, b) => parseInt(b) - parseInt(a));
                         if (years.length > 0) {
                             setSelectedYear(years[0]);
                         }
@@ -256,6 +264,7 @@ const HistoryInvoice: React.FC = () => {
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : "An error occurred");
+                setInvoices([]);
             } finally {
                 setLoading(false);
             }

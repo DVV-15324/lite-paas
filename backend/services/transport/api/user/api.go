@@ -11,6 +11,7 @@ type BusinessUser interface {
 	BzCreateUser(ctx context.Context, cu *entityUser.CreateUserForm) (int, *c_errors.AppError)
 	BzGetUsersById(ctx context.Context, id int) (*entityUser.Users, *c_errors.AppError)
 	BzUpdateUser(ctx context.Context, up *entityUser.UpdateUserForm, id int) *c_errors.AppError
+	BzGetUserAll(ctx context.Context) ([]*entityUser.Users, *c_errors.AppError)
 }
 type ApiUser struct {
 	bz BusinessUser

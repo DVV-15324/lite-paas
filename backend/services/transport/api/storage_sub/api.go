@@ -11,6 +11,7 @@ type BusinessStorageSub interface {
 	GetStorageSubsByUser(ctx context.Context, userID int64) ([]*entityStorageSub.StorageSubscription, error)
 
 	GetStorageSubsById(ctx context.Context, id int64, userId int64) (*entityStorageSub.StorageSubscription, error)
+	GetStorageSubsAll(ctx context.Context) ([]*entityStorageSub.StorageSubscription, error)
 }
 
 type ApiStorageSub struct {

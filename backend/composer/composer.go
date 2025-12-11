@@ -33,6 +33,7 @@ import (
 	apiPayment "lite-paas/services/transport/api/payment"
 	apiRuntime "lite-paas/services/transport/api/runtime"
 	apiRuntimeSub "lite-paas/services/transport/api/runtime_sub"
+	apiStopPods "lite-paas/services/transport/api/stop"
 	apiStorage "lite-paas/services/transport/api/storage"
 	apiStorageSub "lite-paas/services/transport/api/storage_sub"
 	apiSupportTicket "lite-paas/services/transport/api/support_ticket"
@@ -51,6 +52,7 @@ import (
 	"github.com/gin-gonic/gin"
 	k8sMestrics "lite-paas/k8s-service/k8s-manager/mestrics"
 	k8sLogsPod "lite-paas/k8s-service/k8s-manager/runtime"
+	k8sStop "lite-paas/k8s-service/k8s-manager/stop"
 )
 
 type BzIntroSpectToken interface {
@@ -62,11 +64,13 @@ type ApiAuth interface {
 	ApiGoogleLogin() func(c *gin.Context)
 	ApiAuthForget() func(c *gin.Context)
 	ApiAuthChange() func(c *gin.Context)
+	ApiAuthChangeStatus() func(c *gin.Context)
 }
 type ApiUser interface {
 	ApiGetUserById() func(c *gin.Context)
 	ApiUpdateUser() func(c *gin.Context)
 	ApiGetUserByIdPublic() func(c *gin.Context)
+	ApiGetUserAll() func(c *gin.Context)
 }
 
 type ApiPayment interface {
@@ -83,10 +87,12 @@ type ApiRuntimeSub interface {
 	UpdateRuntimeSub() func(c *gin.Context)
 	GetRuntimeSubsByUser() func(c *gin.Context)
 	ApiGetRuntimeSubsById() func(c *gin.Context)
+	ApiGetRuntimeSubsAll() func(c *gin.Context)
 }
 type ApiStorageSub interface {
 	GetStorageSubsByUser() func(c *gin.Context)
 	ApiGetStorageSubsById() func(c *gin.Context)
+	ApiGetStorageSubsAll() func(c *gin.Context)
 }
 type ApiStorage interface {
 	ApiCreateStorage() func(c *gin.Context)
@@ -99,12 +105,14 @@ type ApiInvoice interface {
 	ApiGetInvoiceByID() func(c *gin.Context)
 	ApiListInvoicesByUser() func(c *gin.Context)
 	ApiUpdateInvoiceStatus() func(c *gin.Context)
+	ApiGetInvoiceAll() func(c *gin.Context)
 }
 
 type ApiSupportTicket interface {
 	ApiCreateNewTicket() func(c *gin.Context)
 	ApiUpdateTicket() func(c *gin.Context)
 	ApiGetTicketsByUserID() func(c *gin.Context)
+	ApiGetTicketsAll() func(c *gin.Context)
 }
 
 type ApiTicketMessage interface {
@@ -117,6 +125,13 @@ type ApiMestrics interface {
 type ApiLogPod interface {
 	ApiGetAppLogs() func(c *gin.Context)
 }
+
+type ApiStop interface {
+	ApiStartApp() func(c *gin.Context)
+	ApiStopApp() func(c *gin.Context)
+}
+
+// dependency
 type ApiServer struct {
 	BzIntrospect     BzIntroSpectToken
 	ApiMestrics      ApiMestrics
@@ -133,6 +148,7 @@ type ApiServer struct {
 	ServiceHub       *hub.ServiceHub
 	ChatHub          *hub.TicketHub
 	ApilogsPod       ApiLogPod
+	ApiStop          ApiStop
 }
 
 func ComposerService() *ApiServer {
@@ -150,7 +166,7 @@ func ComposerService() *ApiServer {
 	go ChatHub.Run()
 	k8s, _ := k8sMestrics.NewK8sManagerMetrics("./k8s-service/config.yaml")
 	k8sManager, _ := k8sLogsPod.NewK8sManagerRuntime("user", "example.com", "./k8s-service/config.yaml", ServiceHub)
-
+	k8sStop, _ := k8sStop.NewDeploymentManager("./k8s-service/config.yaml")
 	// Khởi tạo logs handler
 
 	rRuntime := responsitoryRuntime.NewRuntimeServiceSQL(db)
@@ -190,6 +206,7 @@ func ComposerService() *ApiServer {
 	apiTicketMessage := apiTicketMessage.NewApiTicketMessage(bzTicketMessage)
 	apiMetrics := apiMetrics.NewApiMestrics(k8s, bzUser)
 	logsHandler := apiLogPods.NewLogsHandler(k8sManager)
+	stopHandler := apiStopPods.NewLogsHandler(k8sStop)
 	return &ApiServer{
 		BzIntrospect:     bzAuth,
 		ApiAuth:          apiAuth,
@@ -206,5 +223,6 @@ func ComposerService() *ApiServer {
 		ApiStorageSub:    apiStorageSub,
 		ApiMestrics:      apiMetrics,
 		ApilogsPod:       logsHandler,
+		ApiStop:          stopHandler,
 	}
 }

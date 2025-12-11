@@ -2,17 +2,17 @@ package invoice
 
 import (
 	"context"
-	"database/sql"
+
 	"fmt"
 	entityInvoice "lite-paas/services/entity/invoice"
 )
 
-func (s *InvoiceServiceSQL) ListInvoicesByUser(ctx context.Context, userID int64) ([]*entityInvoice.Invoice, error) {
+func (s *InvoiceServiceSQL) ListInvoicesAll(ctx context.Context) ([]*entityInvoice.Invoice, error) {
 	query := `
 		SELECT id, user_id, service_id, service_type, amount, status, paid_at, due_date, created_at, updated_at
-		FROM invoices WHERE user_id=@user_id
+		FROM invoices
 	`
-	rows, err := s.db.QueryContext(ctx, query, sql.Named("user_id", userID))
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list invoices: %v", err)
 	}

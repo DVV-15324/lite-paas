@@ -1,20 +1,17 @@
 package storage
 
 import (
+	c_uid "lite-paas/common/uid"
 	entityStorage "lite-paas/services/entity/storage"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (api *ApiStorage) ApiUpdateStorage() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid storage service ID"})
-			return
-		}
+		id_s := c.Param("id")
+		uid_s := c_uid.DecodeFromBase58(id_s)
 
 		var req entityStorage.UpdateStorageService
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -22,7 +19,7 @@ func (api *ApiStorage) ApiUpdateStorage() func(c *gin.Context) {
 			return
 		}
 
-		err = api.bz.UpdateStorage(c.Request.Context(), id, &req)
+		err := api.bz.UpdateStorage(c.Request.Context(), int(uid_s.LocalID), &req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

@@ -6,10 +6,10 @@ import (
 )
 
 func (b *BussinessStorage) UpdateStorage(ctx context.Context, id int, data *entityStorage.UpdateStorageService) error {
-	err := data.Validate()
-	if err != nil {
-		return err
-	}
+	// err := data.Validate()
+	// if err != nil {
+	// 	return err
+	// }
 	errUp := b.bz.UpdateStorage(ctx, id, data)
 	if errUp != nil {
 		return errUp

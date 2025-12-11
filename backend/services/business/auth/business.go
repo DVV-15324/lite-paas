@@ -12,6 +12,7 @@ type ReponsitoryAuth interface {
 	CreateAuth(cxt context.Context, auth *entityAuth.Auth) error
 	GetAuthByEmail(ctx context.Context, email string) (*entityAuth.Auth, error)
 	UpdateAuthPassWord(cxt context.Context, email string, passwordSalt string) error
+	UpdateAuthStatus(cxt context.Context, email string, status int) error
 }
 
 type Hash interface {

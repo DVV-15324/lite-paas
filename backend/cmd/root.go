@@ -120,6 +120,27 @@ func StartService(r *gin.Engine) {
 	mestricsV2 := v2.Group("mestrics").Use(middleware.RequiredAuth(comp.BzIntrospect))
 	mestricsV2.POST("/:id/:type", comp.ApiMestrics.ApiGetRamStorage())
 	mestricsV2.POST("/:id", comp.ApiMestrics.ApiGetRamCpu())
+
+	admin := r.Group("admin")
+	adminSubStorage := admin.Group("sub-storage")
+	adminSubStorage.POST("/all", comp.ApiStorageSub.ApiGetStorageSubsAll())
+	adminSubRuntime := admin.Group("sub-runtime")
+	adminSubRuntime.POST("/all", comp.ApiRuntimeSub.ApiGetRuntimeSubsAll())
+	adminUser := admin.Group("user")
+	adminUser.POST("/all", comp.ApiUser.ApiGetUserAll())
+	adminInvoice := admin.Group("invoice")
+	adminInvoice.POST("/all", comp.ApiInvoice.ApiGetInvoiceAll())
+	adminSupportTicket := admin.Group("support-ticket")
+	adminSupportTicket.POST("/all", comp.ApiSupportTicket.ApiGetTicketsAll())
+	adminSupportTicket.POST("/:id", comp.ApiSupportTicket.ApiUpdateTicket())
+	adminStop := admin.Group("stop")
+	adminStop.POST("/apps/:namespace/logs/:appName", comp.ApiStop.ApiStopApp())
+	adminStart := admin.Group("start")
+	adminStart.POST("/apps/:namespace/logs/:appName", comp.ApiStop.ApiStartApp())
+	adminStopRuntime := admin.Group("stop-runtime")
+	adminStopRuntime.POST("/:id", comp.ApiRuntime.ApiUpdateRuntime())
+	adminStopStarage := admin.Group("stop-storage")
+	adminStopStarage.POST("/:id", comp.ApiStorage.ApiUpdateStorage())
 }
 
 func GetExcute() *cobra.Command {

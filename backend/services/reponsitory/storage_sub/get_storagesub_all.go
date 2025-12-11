@@ -2,13 +2,13 @@ package storagesub
 
 import (
 	"context"
-	"database/sql"
+
 	entityStorageSub "lite-paas/services/entity/storage_sub"
 )
 
-func (s *StorageSubServiceSQL) ListStorageSubsByUser(ctx context.Context, userID int64) ([]*entityStorageSub.StorageSubscription, error) {
-	query := `SELECT id, user_id, service_id, port_one, port_two, link_return, status, created_at, updated_at FROM user_storage WHERE user_id=@user_id`
-	rows, err := s.db.QueryContext(ctx, query, sql.Named("user_id", userID))
+func (s *StorageSubServiceSQL) ListStorageSubsAll(ctx context.Context) ([]*entityStorageSub.StorageSubscription, error) {
+	query := `SELECT id, user_id, service_id, port_one, port_two, link_return, status, created_at, updated_at FROM user_storage`
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

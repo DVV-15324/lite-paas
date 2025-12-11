@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
-import { ForgotPasswordType, LoginType, ProfileType, RegisterType, ResponseLoginType } from "../model/auth"
+import { ForgotPasswordType, LoginType, ProfileType, RegisterType, ResponseLoginType } from "../model/auth";
 import { useNavigate, ErrorResponse } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import axios, { AxiosError } from "axios";
@@ -10,27 +10,25 @@ import { TokenResponse } from "@react-oauth/google";
 
 const ErrorHandle = (error: AxiosError | Error) => {
     if (axios.isAxiosError(error)) {
-        return { message: error.response?.data.error, error: error.response?.data.message }
+        return { message: error.response?.data.error, error: error.response?.data.message };
     }
-    return { message: error.message || "UnKnown Error" }
-}
+    return { message: error.message || "UnKnown Error" };
+};
 
-export const DefaultLoading = () => {
-    return (
-        <CircularProgress className="flex justify-center items-center"></CircularProgress >
-    )
-}
-
+export const DefaultLoading = () => (
+    <CircularProgress className="flex justify-center items-center" />
+);
 type AuthContextType = {
     profile: ProfileType | null;
-    loading: boolean
-    handleLogin: (data: LoginType) => Promise<void>
-    handleRegister: (data: RegisterType) => Promise<void>
-    handleForgotPassword: (data: ForgotPasswordType) => Promise<void>
-    handleProfile: () => Promise<void>
-    handleCredentialResponse: (response: any) => Promise<void>;
-    handleOut: () => void
-}
+    loading: boolean;
+    handleLogin: (data: LoginType) => Promise<void>;
+    handleRegister: (data: RegisterType) => Promise<void>;
+    handleForgotPassword: (data: ForgotPasswordType) => Promise<void>;
+    handleProfile: () => Promise<ProfileType | null>; // <-- thay đổi ở đây
+    handleCredentialResponse: (response: TokenResponse) => Promise<void>;
+    handleOut: () => void;
+};
+
 
 export const AuthContext = createContext<AuthContextType>({
     profile: null,
@@ -38,118 +36,122 @@ export const AuthContext = createContext<AuthContextType>({
     handleLogin: async () => { },
     handleRegister: async () => { },
     handleForgotPassword: async () => { },
-    handleProfile: async () => { },
+    handleProfile: async () => null,
     handleCredentialResponse: async () => { },
     handleOut: () => { },
-})
+});
 
 interface AuthContextProps {
-    children: React.ReactNode
+    children: React.ReactNode;
 }
 
 export const AuthProvider = ({ children }: AuthContextProps) => {
-    const [profile, setProfile] = useState<ProfileType | null>(null)
-    const [loading, setLoading] = useState<boolean>(true)
-    const navigate = useNavigate()
-    const { enqueueSnackbar } = useSnackbar()
+    const [profile, setProfile] = useState<ProfileType | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
 
-    const handleProfile = useCallback(async () => {
+    const handleProfile = useCallback(async (): Promise<ProfileType | null> => {
         try {
-            const profile = await ApiProfile<Response<ProfileType>>()
-            setProfile(profile.data)
-            setLoading(false)
+            const profile = await ApiProfile<Response<ProfileType>>();
+            setProfile(profile.data);
+            setLoading(false);
+            return profile.data;  // trả về profile
         } catch (error) {
-            setProfile(null)
-            setLoading(false)
-            localStorage.removeItem("access_token")
+            setProfile(null);
+            setLoading(false);
+            localStorage.removeItem("access_token");
             const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
             enqueueSnackbar(err.message, { variant: "error" });
+            return null;
         }
-    }, [])
+    }, []);
+
 
     useEffect(() => {
         (async () => {
             try {
-                const token = localStorage.getItem("access_token")
+                const token = localStorage.getItem("access_token");
                 if (token) {
-                    await handleProfile()
+                    await handleProfile();
                 }
-                setLoading(false)
             } catch (error) {
                 const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
                 enqueueSnackbar(err.message, { variant: "error" });
-                setLoading(false)
+            } finally {
+                setLoading(false);
             }
-        })()
-    }, [handleProfile])
-
+        })();
+    }, [handleProfile, enqueueSnackbar]);
 
     const handleLogin = async (data: LoginType) => {
         try {
-            const token = await ApiLogin<Response<ResponseLoginType>>(data);
-            const accessToken = token?.data?.access_token.token;
-
-            // if (!accessToken) {
-            //   throw new Error("Dữ liệu token không hợp lệ từ server.");
-            //}
+            const tokenRes = await ApiLogin<Response<ResponseLoginType>>(data);
+            const accessToken = tokenRes?.data?.access_token.token;
+            if (!accessToken) throw new Error("Token từ server không hợp lệ");
 
             localStorage.setItem("access_token", accessToken);
             enqueueSnackbar("Đăng nhập thành công!", { variant: "success" });
 
-            await handleProfile();
+            // Lấy profile trực tiếp
+            const userProfile = await handleProfile();
+            if (userProfile?.role === "user") {
+                navigate("/admin/dashboard");
+            } else {
+                navigate("/dashboard");
+            }
 
-            navigate("/dashboard");
         } catch (error) {
             const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
             enqueueSnackbar(err.message, { variant: "error" });
         }
     };
 
-
-
     const handleRegister = async (data: RegisterType) => {
         try {
-            await ApiRegister<Response<boolean>>(data)
-            navigate("/")
+            await ApiRegister<Response<boolean>>(data);
+            navigate("/");
         } catch (error) {
             const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
             enqueueSnackbar(err.message, { variant: "error" });
         }
-    }
+    };
+
     const handleForgotPassword = async (data: ForgotPasswordType) => {
         try {
-            await ApiForgetPassword<Response<boolean>>(data)
-            navigate("/")
+            await ApiForgetPassword<Response<boolean>>(data);
+            navigate("/");
         } catch (error) {
             const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
             enqueueSnackbar(err.message, { variant: "error" });
         }
-    }
-    const handleOut = async () => {
-        setProfile(null)
+    };
 
-        localStorage.removeItem("access_token")
+    const handleOut = () => {
+        setProfile(null);
+        localStorage.removeItem("access_token");
         window.location.replace("/");
-    }
-
+    };
 
     const handleCredentialResponse = async (response: TokenResponse) => {
         try {
             const res = await ApiLoginGoogle<Response<ResponseLoginType>>(response.access_token);
-            console.log("access:", res.data.access_token.token);
             localStorage.setItem("access_token", res.data.access_token.token);
             enqueueSnackbar("Đăng nhập bằng Google thành công!", { variant: "success" });
 
-            await handleProfile();
-            navigate("/handleProfile");
+            const profileData = await handleProfile();
+
+            if (profileData?.role === "admin") {
+                navigate("/admin/dashboard");
+            } else {
+                navigate("/dashboard");
+            }
+
         } catch (err) {
             const error = ErrorHandle(err as AxiosError);
-            console.log("Error message to snackbar:", error.message);
             enqueueSnackbar(error.message || "Đã xảy ra lỗi", { variant: "error" });
-
         }
     };
-
 
     return (
         <AuthContext.Provider
@@ -167,5 +169,4 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
             {children}
         </AuthContext.Provider>
     );
-
-}
+};

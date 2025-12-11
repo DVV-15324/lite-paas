@@ -35,7 +35,7 @@ func (r *RuntimeServiceSQL) UpdateRuntime(ctx context.Context, id int, runtime *
 	if len(placeholders) == 0 {
 		return fmt.Errorf("no fields to update")
 	}
-	query := fmt.Sprintf("UPDATE runtime SET %s", strings.Join(placeholders, ", "))
+	query := fmt.Sprintf("UPDATE runtime_services SET %s", strings.Join(placeholders, ", "))
 	_, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failer to update runtime: %v", err)

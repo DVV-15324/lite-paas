@@ -10,6 +10,7 @@ type BusinessInvoice interface {
 	ListInvoicesByUser(ctx context.Context, userID int64) ([]*entityInvoice.Invoice, error)
 	GetInvoiceByID(ctx context.Context, id int64) (*entityInvoice.Invoice, error)
 	UpdateInvoiceStatus(ctx context.Context, id int64, status string) error
+	ListInvoicesAll(ctx context.Context) ([]*entityInvoice.Invoice, error)
 }
 
 type ApiInvoice struct {

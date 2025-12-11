@@ -18,6 +18,7 @@ type StorageSubReponsitory interface {
 	) (insertedID int64, portOne int, portTwo int, err error)
 	ListStorageSubsByUser(ctx context.Context, userID int64) ([]*entityStorageSub.StorageSubscription, error)
 	GetStorageSubsById(ctx context.Context, id int64) (*entityStorageSub.StorageSubscription, error)
+	ListStorageSubsAll(ctx context.Context) ([]*entityStorageSub.StorageSubscription, error)
 }
 
 type BzUser interface {

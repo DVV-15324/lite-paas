@@ -15,6 +15,7 @@ type RuntimeSubResponsitory interface {
 	ListRuntimeSubsByUser(ctx context.Context, userID int64) ([]*entityRuntimeSub.RuntimeSubscription, error)
 	UpdateRuntimesub(ctx context.Context, id int, runtime *entityRuntimeSub.UpdateRuntimeSubscription) error
 	GetRuntimeSubByID(ctx context.Context, id int64) (*entityRuntimeSub.RuntimeSubscription, error)
+	ListRuntimeSubsAll(ctx context.Context) ([]*entityRuntimeSub.RuntimeSubscription, error)
 }
 type BusinessRuntime interface {
 	GetRuntimeById(ctx context.Context, id int) (*entityRuntime.RuntimeService, error)

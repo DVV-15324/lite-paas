@@ -47,6 +47,7 @@ type UpdateRuntime struct {
 	Status      *bool    `json:"status" db:"status"`
 }
 
+/*
 func (r *UpdateRuntime) Validate() error {
 	errName := CheckName(*r.Name)
 	if errName != nil {
@@ -70,3 +71,4 @@ func (r *UpdateRuntime) Validate() error {
 
 	return nil
 }
+*/

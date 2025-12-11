@@ -14,6 +14,7 @@ type ReponsitoryInvoice interface {
 	ListInvoicesByUser(ctx context.Context, userID int64) ([]*entityInvoice.Invoice, error)
 	GetInvoiceByID(ctx context.Context, id int64) (*entityInvoice.Invoice, error)
 	UpdateInvoiceStatus(ctx context.Context, id int64, status string) error
+	ListInvoicesAll(ctx context.Context) ([]*entityInvoice.Invoice, error)
 }
 type BusinessRuntime interface {
 	GetRuntimeById(ctx context.Context, id int) (*entityRuntime.RuntimeService, error)

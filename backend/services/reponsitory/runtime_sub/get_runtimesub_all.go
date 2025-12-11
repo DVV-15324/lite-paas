@@ -2,13 +2,13 @@ package runtimesub
 
 import (
 	"context"
-	"database/sql"
+
 	entityRuntimeSub "lite-paas/services/entity/runtime_sub"
 )
 
-func (s *RuntimeSubServiceSQL) ListRuntimeSubsByUser(ctx context.Context, userID int64) ([]*entityRuntimeSub.RuntimeSubscription, error) {
-	query := `SELECT id, user_id, service_id, link_return, status, created_at, updated_at FROM user_runtime WHERE user_id=@user_id`
-	rows, err := s.db.QueryContext(ctx, query, sql.Named("user_id", userID))
+func (s *RuntimeSubServiceSQL) ListRuntimeSubsAll(ctx context.Context) ([]*entityRuntimeSub.RuntimeSubscription, error) {
+	query := `SELECT id, user_id, service_id, link_return, status, created_at, updated_at FROM user_runtime`
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

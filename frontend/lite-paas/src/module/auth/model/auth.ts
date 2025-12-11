@@ -20,7 +20,7 @@ export type ProfileType = {
     id: string;
     email: string;
     name: string;
-    type_auth: string;
+    role: string;
     phone: {
         String: string;
         Valid: boolean;
