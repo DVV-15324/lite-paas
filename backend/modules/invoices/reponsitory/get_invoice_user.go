@@ -9,7 +9,7 @@ import (
 
 func (s *InvoiceServiceSQL) ListInvoicesByUser(ctx context.Context, userID int64) ([]*entityInvoice.Invoice, error) {
 	query := `
-		SELECT id, user_id, service_id, service_type, amount, status, paid_at, due_date, created_at, updated_at
+		SELECT id, user_id, service_id, service_type, amount, status, due_date, created_at, updated_at
 		FROM invoices WHERE user_id=@user_id
 	`
 	rows, err := s.db.QueryContext(ctx, query, sql.Named("user_id", userID))
@@ -23,7 +23,7 @@ func (s *InvoiceServiceSQL) ListInvoicesByUser(ctx context.Context, userID int64
 		var inv entityInvoice.Invoice
 		if err := rows.Scan(
 			&inv.Id, &inv.UserId, &inv.ServiceID, &inv.ServiceType, &inv.Amount,
-			&inv.Status, &inv.PaidAt, &inv.DueDate, &inv.CreatedAt, &inv.UpdatedAt,
+			&inv.Status, &inv.DueDate, &inv.CreatedAt, &inv.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

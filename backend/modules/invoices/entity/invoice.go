@@ -21,7 +21,6 @@ type Invoice struct {
 	Status        bool                            `json:"status" db:"status"`
 	InfoRunTime   *entityRuntime.RuntimeService   `json:"info_runtime,omitempty"`
 	InfoDatabase  *entityDatabase.DatabaseService `json:"info_database,omitempty"`
-	PaidAt        *time.Time                      `json:"paid_at,omitempty" db:"paid_at"`
 	DueDate       *time.Time                      `json:"due_date,omitempty" db:"due_date"`
 	CreatedAt     time.Time                       `json:"created_at" db:"created_at"`
 	UpdatedAt     time.Time                       `json:"updated_at" db:"updated_at"`
