@@ -1,9 +1,10 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useHookAuth } from "../hooks/authHooks";
 import { RegisterSchema } from "../model/schema";
-import { User, Mail, Lock, Key, Shield, Sparkles, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { useHookAuth } from "../hooks/authHooks.tsx";
+import { useNavigate } from "react-router-dom";
 
 interface RegisterFormData {
     name: string;
@@ -17,240 +18,124 @@ export function RegisterUI() {
     const [showPassword, setShowPassword] = React.useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
+    const navigate = useNavigate();
 
     const methods = useForm<RegisterFormData>({
         resolver: yupResolver(RegisterSchema),
-        mode: "onChange",
-        defaultValues: {
-            name: "",
-            email: "",
-            password: "",
-            confirmPassword: ""
-        }
+
+        defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
     });
 
-    const {
-        handleSubmit,
-        register,
-        formState: { errors, isValid }
-    } = methods;
+    const { handleSubmit, register, formState: { errors, isValid } } = methods;
 
     const onSubmit = async (data: RegisterFormData) => {
         setIsLoading(true);
         try {
             await handleRegister(data);
-        } catch (error) {
-            console.error("Register error:", error);
+        } catch (e) {
+            console.error(e);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="w-full">
-
-            <div className="text-center mb-10">
-                <div className="flex justify-center mb-6">
-                    <img
-                        src="/logo.png"
-                        alt="Logo"
-                        className="h-24 w-auto"
+        <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+            <h1 className="text-xl font-bold mb-4 text-center">Đăng kí</h1>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                {/* name*/}
+                <div className="mb-4">
+                    <label className="block text-sm">Ho va ten</label>
+                    <input
+                        type="text"
+                        {...register("name")}
+                        placeholder="vu"
+                        className={`w-full px-3 py-2 border rounded ${errors.name ? "border-red-500" : "border-gray-300"}`}
                     />
-                </div>
-
-                <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">
-                    Create Account
-                </h1>
-
-            </div>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Name Field */}
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-white/5 rounded-lg">
-                            <User className="h-5 w-5 text-blue-400" />
-                        </div>
-                        <label className="block text-sm font-medium text-gray-300">
-                            Full Name
-                        </label>
-                    </div>
-                    <div className="relative group">
-
-                        <input
-                            type="text"
-                            {...register("name")}
-                            className={`w-full pl-4 pr-4 py-4 rounded-xl bg-white/5 border ${errors.name
-                                ? "border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                                : "border-white/10 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
-                                } text-white placeholder-gray-500 outline-none transition-all duration-300 backdrop-blur-sm`}
-                            placeholder="John Doe"
-                            autoComplete="name"
-                        />
-                    </div>
                     {errors.name && (
-                        <div className="flex items-center text-red-400 text-sm bg-red-500/10 px-4 py-3 rounded-lg border border-red-500/20">
-                            <div className="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
-                            {errors.name.message}
-                        </div>
+                        <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
                     )}
                 </div>
 
-                {/* Email Field */}
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-white/5 rounded-lg">
-                            <Mail className="h-5 w-5 text-purple-400" />
-                        </div>
-                        <label className="block text-sm font-medium text-gray-300">
-                            Email Address
-                        </label>
-                    </div>
-                    <div className="relative group">
-
-                        <input
-                            type="email"
-                            {...register("email")}
-                            className={`w-full pl-4 pr-4 py-4 rounded-xl bg-white/5 border ${errors.email
-                                ? "border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                                : "border-white/10 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
-                                } text-white placeholder-gray-500 outline-none transition-all duration-300 backdrop-blur-sm`}
-                            placeholder="name@example.com"
-                            autoComplete="email"
-                        />
-                    </div>
+                {/* email*/}
+                <div className="mb-4">
+                    <label className="block mb-1 text-sm">Email</label>
+                    <input
+                        type="email"
+                        {...register("email")}
+                        placeholder="vu@gmail.com"
+                        className={`w-full px-3 py-2 border rounded ${errors.email ? "border-red-500" : "border-gray-300"}`}
+                    />
                     {errors.email && (
-                        <div className="flex items-center text-red-400 text-sm bg-red-500/10 px-4 py-3 rounded-lg border border-red-500/20">
-                            <div className="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
-                            {errors.email.message}
-                        </div>
+                        <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
                     )}
                 </div>
 
-                {/* Password Field */}
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-white/5 rounded-lg">
-                            <Lock className="h-5 w-5 text-green-400" />
-                        </div>
-                        <label className="block text-sm font-medium text-gray-300">
-                            Password
-                        </label>
-                    </div>
-                    <div className="relative group">
-
+                {/* mat khau */}
+                <div className="mb-4">
+                    <label className="block mb-1 text-sm">Mat khau</label>
+                    <div className="relative">
                         <input
                             type={showPassword ? "text" : "password"}
                             {...register("password")}
-                            className={`w-full pl-4 pr-12 py-4 rounded-xl bg-white/5 border ${errors.password
-                                ? "border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                                : "border-white/10 focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20"
-                                } text-white placeholder-gray-500 outline-none transition-all duration-300 backdrop-blur-sm`}
                             placeholder="••••••••"
-                            autoComplete="new-password"
+                            className={`w-full px-3 py-2 border rounded ${errors.password ? "border-red-500" : "border-gray-300"}`}
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white transition-colors"
+                            className="absolute right-2 top-1/2 -translate-y-1/2"
                         >
-                            {showPassword ? (
-                                <EyeOff className="h-5 w-5" />
-                            ) : (
-                                <Eye className="h-5 w-5" />
-                            )}
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
                     {errors.password && (
-                        <div className="flex items-center text-red-400 text-sm bg-red-500/10 px-4 py-3 rounded-lg border border-red-500/20">
-                            <div className="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
-                            {errors.password.message}
-                        </div>
+                        <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
                     )}
                 </div>
 
-                {/* Confirm Password Field */}
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-white/5 rounded-lg">
-                            <Lock className="h-5 w-5 text-yellow-400" />
-                        </div>
-                        <label className="block text-sm font-medium text-gray-300">
-                            Confirm Password
-                        </label>
-                    </div>
-                    <div className="relative group">
-
+                {/* xac nhan */}
+                <div className="mb-6">
+                    <label className="block mb-1 text-sm">Xac nhan lai mat khau</label>
+                    <div className="relative">
                         <input
                             type={showConfirmPassword ? "text" : "password"}
                             {...register("confirmPassword")}
-                            className={`w-full  pl-4 pr-12 py-4 rounded-xl bg-white/5 border ${errors.confirmPassword
-                                ? "border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                                : "border-white/10 focus:border-yellow-500/50 focus:ring-2 focus:ring-yellow-500/20"
-                                } text-white placeholder-gray-500 outline-none transition-all duration-300 backdrop-blur-sm`}
                             placeholder="••••••••"
-                            autoComplete="new-password"
+                            className={`w-full px-3 py-2 border rounded ${errors.confirmPassword ? "border-red-500" : "border-gray-300"}`}
                         />
                         <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white transition-colors"
+                            className="absolute right-2 top-1/2 -translate-y-1/2"
                         >
-                            {showConfirmPassword ? (
-                                <EyeOff className="h-5 w-5" />
-                            ) : (
-                                <Eye className="h-5 w-5" />
-                            )}
+                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
                     {errors.confirmPassword && (
-                        <div className="flex items-center text-red-400 text-sm bg-red-500/10 px-4 py-3 rounded-lg border border-red-500/20">
-                            <div className="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
-                            {errors.confirmPassword.message}
-                        </div>
+                        <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
                     )}
                 </div>
-
-                {/* Submit Button */}
                 <button
                     type="submit"
                     disabled={isLoading || !isValid}
-                    className={`w-full py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center space-x-3 group ${isLoading || !isValid
-                        ? 'bg-gray-800 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-blue-600 to-red-600 text-white hover:from-blue-700 hover:to-red-700 hover:shadow-lg hover:shadow-blue-500/25 active:scale-[0.98]'
-                        }`}
+                    className="w-full py-2 mb-2 bg-blue-600 text-white rounded disabled:opacity-50"
                 >
-                    {isLoading ? (
-                        <>
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            <span>Creating Account...</span>
-                        </>
-                    ) : (
-                        <>
-                            <div className="w-5 h-5">
-                                <svg className="w-full h-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                </svg>
-                            </div>
-                            <span>Create Account</span>
-                        </>
-                    )}
+                    {isLoading ? "Đăng kí..." : "Đăng kí"}
                 </button>
 
-                {/* Login Link */}
-                <div className="text-center pt-6 border-t border-white/10">
-                    <p className="text-gray-400">
-                        Already have an account?{" "}
-                        <a
-                            href="/login"
-                            className="font-bold text-blue-400 hover:text-blue-300 transition-colors"
+                <div className="text-center pt-4 border-t border-gray-200">
+                    <p className="text-gray-500">
+                        Bạn có tài khoản?{" "}
+                        <button
+                            type="button"
+                            onClick={() => navigate("/login")}
+                            className="text-blue-600 hover:underline"
                         >
-                            Sign in
-                        </a>
+                            Đăng nhập
+                        </button>
                     </p>
                 </div>
-
-
             </form>
         </div>
     );

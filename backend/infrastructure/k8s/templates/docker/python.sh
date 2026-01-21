@@ -1,0 +1,1 @@
+FROM 192.168.5.202:30000/python:3.12\nWORKDIR /app\nCOPY . .\nRUN pip install --no-cache-dir -r requirements.txt\nEXPOSE 8080\nCMD ["python", "app.py"]

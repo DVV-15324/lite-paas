@@ -1,12 +1,12 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
-import { ForgotPasswordType, LoginType, ProfileType, RegisterType, ResponseLoginType } from "../model/auth";
+import { LoginType, ProfileType, RegisterType, ResponseLoginType } from "../model/auth";
 import { useNavigate, ErrorResponse } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import axios, { AxiosError } from "axios";
 import CircularProgress from '@mui/material/CircularProgress';
-import { ApiForgetPassword, ApiLogin, ApiLoginGoogle, ApiProfile, ApiRegister } from "../services/api";
-import { Response } from "../../common/model";
-import { TokenResponse } from "@react-oauth/google";
+import { ApiLogin, ApiProfile, ApiRegister } from "../services/api";
+import { Response } from "../../../shared/model/model";
+
 
 const ErrorHandle = (error: AxiosError | Error) => {
     if (axios.isAxiosError(error)) {
@@ -23,9 +23,8 @@ type AuthContextType = {
     loading: boolean;
     handleLogin: (data: LoginType) => Promise<void>;
     handleRegister: (data: RegisterType) => Promise<void>;
-    handleForgotPassword: (data: ForgotPasswordType) => Promise<void>;
-    handleProfile: () => Promise<ProfileType | null>; // <-- thay đổi ở đây
-    handleCredentialResponse: (response: TokenResponse) => Promise<void>;
+
+    handleProfile: () => Promise<ProfileType | null>;
     handleOut: () => void;
 };
 
@@ -35,9 +34,8 @@ export const AuthContext = createContext<AuthContextType>({
     loading: true,
     handleLogin: async () => { },
     handleRegister: async () => { },
-    handleForgotPassword: async () => { },
     handleProfile: async () => null,
-    handleCredentialResponse: async () => { },
+
     handleOut: () => { },
 });
 
@@ -93,7 +91,7 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
             localStorage.setItem("access_token", accessToken);
             enqueueSnackbar("Đăng nhập thành công!", { variant: "success" });
 
-            // Lấy profile trực tiếp
+
             const userProfile = await handleProfile();
             if (userProfile?.role === "user") {
                 navigate("/admin/dashboard");
@@ -117,40 +115,10 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
         }
     };
 
-    const handleForgotPassword = async (data: ForgotPasswordType) => {
-        try {
-            await ApiForgetPassword<Response<boolean>>(data);
-            navigate("/");
-        } catch (error) {
-            const err = ErrorHandle(error as Error | AxiosError<ErrorResponse>);
-            enqueueSnackbar(err.message, { variant: "error" });
-        }
-    };
-
     const handleOut = () => {
         setProfile(null);
         localStorage.removeItem("access_token");
         window.location.replace("/");
-    };
-
-    const handleCredentialResponse = async (response: TokenResponse) => {
-        try {
-            const res = await ApiLoginGoogle<Response<ResponseLoginType>>(response.access_token);
-            localStorage.setItem("access_token", res.data.access_token.token);
-            enqueueSnackbar("Đăng nhập bằng Google thành công!", { variant: "success" });
-
-            const profileData = await handleProfile();
-
-            if (profileData?.role === "admin") {
-                navigate("/admin/dashboard");
-            } else {
-                navigate("/dashboard");
-            }
-
-        } catch (err) {
-            const error = ErrorHandle(err as AxiosError);
-            enqueueSnackbar(error.message || "Đã xảy ra lỗi", { variant: "error" });
-        }
     };
 
     return (
@@ -161,9 +129,7 @@ export const AuthProvider = ({ children }: AuthContextProps) => {
                 handleLogin,
                 handleRegister,
                 handleProfile,
-                handleCredentialResponse,
                 handleOut,
-                handleForgotPassword,
             }}
         >
             {children}

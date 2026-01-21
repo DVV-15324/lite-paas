@@ -10,8 +10,3 @@ export const RegisterSchema = yup.object({
     email: yup.string().email("email invalid").required("email is required"),
     password: yup.string().required("password is required"),
 })
-
-
-export const ForgotPasswordSchema = yup.object({
-    email: yup.string().email("email invalid").required("email is required"),
-})
